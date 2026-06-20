@@ -41,12 +41,18 @@ io.on("connection", (socket) => {
 
   // ===== EVENT: Naya patient add karna =====
   socket.on("add-patient", (data) => {
+    // Edge case: empty ya sirf-space wala naam reject kar do
+    if (!data || !data.name || !data.name.trim()) {
+      socket.emit("error-message", "Patient ka naam khali nahi ho sakta");
+      return;
+    }
+
     tokenCounter++;
     const newPatient = {
       id: tokenCounter,
-      name: data.name,
+      name: data.name.trim(),
       tokenNumber: tokenCounter,
-      status: "waiting" // waiting | current | done
+      status: "waiting"
     };
     queue.push(newPatient);
 
@@ -54,16 +60,29 @@ io.on("connection", (socket) => {
   });
 
   // ===== EVENT: Next token call karna =====
+  let isProcessingCallNext = false; // race condition guard
+
   socket.on("call-next", () => {
+    // Edge case 1: Agar ek call-next already process ho raha hai, naya ignore kar do
+    if (isProcessingCallNext) return;
+
+    // Edge case 2: Queue khali hai
     if (queue.length === 0) {
       socket.emit("error-message", "Queue khali hai, koi patient nahi hai");
       return;
     }
 
+    isProcessingCallNext = true;
+
     currentToken = queue.shift();
     currentToken.status = "current";
 
     io.emit("queue-updated", getQueueState());
+
+    // Thodi der ke liye lock rakhte hain taaki double-click se 2 patients na nikal jaye
+    setTimeout(() => {
+      isProcessingCallNext = false;
+    }, 300);
   });
 
   // ===== EVENT: Average consultation time set karna =====
