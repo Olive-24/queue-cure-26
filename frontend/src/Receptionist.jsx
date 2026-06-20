@@ -34,6 +34,10 @@ function Receptionist() {
     socket.emit("call-next");
   };
 
+  const handleMarkDone = () => {
+    socket.emit("mark-done");
+  };
+
   const handleSetAvgTime = (e) => {
     const minutes = Number(e.target.value);
     setAvgConsultTime(minutes);
@@ -87,9 +91,14 @@ function Receptionist() {
           <div style={styles.statusCard}>
             <p style={styles.statusLabel}>Currently Consulting</p>
             {currentToken ? (
-              <p style={styles.currentTokenText}>
-                Token #{currentToken.tokenNumber} — {currentToken.name}
-              </p>
+              <>
+                <p style={styles.currentTokenText}>
+                  Token #{currentToken.tokenNumber} — {currentToken.name}
+                </p>
+                <button onClick={handleMarkDone} style={styles.doneBtn}>
+                  ✓ Mark Done
+                </button>
+              </>
             ) : (
               <p style={styles.emptyText}>No patient currently</p>
             )}
@@ -229,6 +238,17 @@ const styles = {
     fontWeight: 600,
     color: "#1e3a8a",
     margin: 0,
+  },
+  doneBtn: {
+    marginTop: "8px",
+    padding: "6px 14px",
+    background: "#16a34a",
+    color: "white",
+    border: "none",
+    borderRadius: "6px",
+    fontSize: "0.85rem",
+    cursor: "pointer",
+    fontWeight: 600,
   },
   queueCount: {
     fontSize: "2rem",

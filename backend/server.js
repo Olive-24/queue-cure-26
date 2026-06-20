@@ -85,6 +85,13 @@ io.on("connection", (socket) => {
     }, 300);
   });
 
+  // ===== EVENT: Current patient ko done mark karna =====
+  socket.on("mark-done", () => {
+    if (!currentToken) return;
+    currentToken = null;
+    io.emit("queue-updated", getQueueState());
+  });
+
   // ===== EVENT: Average consultation time set karna =====
   socket.on("set-avg-time", (minutes) => {
     avgConsultTime = minutes;
