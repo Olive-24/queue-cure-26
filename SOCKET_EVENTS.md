@@ -5,46 +5,33 @@
 ```mermaid
 sequenceDiagram
     participant R as Receptionist Screen
-    participant S as Server (Socket.io)
+    participant S as Server
     participant P as Patient Screen
 
-    Note over R,P: On page load (any screen)
     R->>S: connection
-    S->>R: queue-updated (initial state)
+    S->>R: queue-updated initial state
     P->>S: connection
-    S->>P: queue-updated (initial state)
+    S->>P: queue-updated initial state
 
-    Note over R,S: Receptionist adds a patient
-    R->>S: add-patient { name }
-    alt name is empty/whitespace
-        S->>R: error-message
-    else valid name
-        S->>S: increment tokenCounter, push to queue
-        S->>R: queue-updated (broadcast)
-        S->>P: queue-updated (broadcast)
-    end
+    R->>S: add-patient with name
+    S->>S: create token add to queue
+    S->>R: queue-updated broadcast
+    S->>P: queue-updated broadcast
 
-    Note over R,S: Receptionist calls next token
     R->>S: call-next
-    alt queue is empty
-        S->>R: error-message
-    else queue has patients
-        S->>S: shift queue → currentToken (lock applied)
-        S->>R: queue-updated (broadcast)
-        S->>P: queue-updated (broadcast)
-    end
+    S->>S: shift queue to currentToken
+    S->>R: queue-updated broadcast
+    S->>P: queue-updated broadcast
 
-    Note over R,S: Receptionist marks consultation done
     R->>S: mark-done
-    S->>S: currentToken = null
-    S->>R: queue-updated (broadcast)
-    S->>P: queue-updated (broadcast)
+    S->>S: clear currentToken
+    S->>R: queue-updated broadcast
+    S->>P: queue-updated broadcast
 
-    Note over R,S: Receptionist updates avg consult time
-    R->>S: set-avg-time (minutes)
+    R->>S: set-avg-time
     S->>S: update avgConsultTime
-    S->>R: queue-updated (broadcast)
-    S->>P: queue-updated (broadcast)
+    S->>R: queue-updated broadcast
+    S->>P: queue-updated broadcast
 ```
 
 ## Event Reference
